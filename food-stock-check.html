@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#050a12">
+<title>Food Stock Check</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a12;
+    --surface: #0a1220;
+    --border: #16243a;
+    --accent: #00a8e8;
+    --accent-dim: #0077a8;
+    --text: #e8f1f8;
+    --muted: #5a6b80;
+    --done: #2a3d55;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    padding: 1.5rem 1rem 3rem;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.2rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.6rem;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    color: var(--accent);
+  }
+
+  .header-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.6;
+  }
+
+  .tag {
+    display: inline-block;
+    background: var(--accent);
+    color: #050a12;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    margin-top: 0.6rem;
+  }
+
+  .progress-bar {
+    margin-bottom: 1.5rem;
+  }
+
+  .progress-track {
+    height: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+
+  .progress-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    margin-top: 5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .meal-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    margin-bottom: 1.2rem;
+    overflow: hidden;
+  }
+
+  .meal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .meal-header h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+  }
+
+  .meal-protein {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  .item-list { list-style: none; }
+
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .item:last-child { border-bottom: none; }
+  .item:active { background: #0d1828; }
+
+  .checkbox {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    border: 1.5px solid var(--accent-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .item.checked .checkbox {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .checkbox svg {
+    width: 13px;
+    height: 13px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .item.checked .checkbox svg { opacity: 1; }
+
+  .item-body { flex: 1; }
+
+  .item-name {
+    font-size: 0.85rem;
+    font-weight: 400;
+    transition: color 0.15s;
+  }
+
+  .item.checked .item-name {
+    color: var(--done);
+    text-decoration: line-through;
+  }
+
+  .item-detail {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+    margin-top: 2px;
+    line-height: 1.5;
+  }
+
+  .item.checked .item-detail { color: var(--done); }
+
+  .store-hint {
+    color: var(--accent-dim);
+  }
+
+  .reset-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.8rem;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: all 0.15s;
+  }
+
+  .reset-btn:active {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 2rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <h1>FOOD<br>STOCK CHECK</h1>
+    <div class="header-meta">
+      ~1,750–1,850 KCAL<br>
+      145–155G PROTEIN<br>
+      SAINSBURY'S / ALDI / ASDA
+    </div>
+  </div>
+  <div class="tag">Weekly Shop — Cut Phase</div>
+</header>
+
+<div class="progress-bar">
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-label">
+    <span id="progressText">0 / 0 IN STOCK</span>
+    <span id="progressPct">0%</span>
+  </div>
+</div>
+
+<div id="app"><div class="loading">LOADING...</div></div>
+
+<button class="reset-btn" id="resetBtn">RESET ALL — NEW SHOP</button>
+
+<footer>
+  TAP ITEM TO MARK IN STOCK · STATE SAVES AUTOMATICALLY<br>
+  QUANTITIES = WEEKLY AMOUNTS FOR ONE PERSON<br>
+  AIM 5–6 DAYS COMPLIANT — FRAMEWORK NOT PRISON<br>
+  <br>
+  PIZZA PROTOCOL: MAX 1×/WK · IT IS DINNER, NOT EXTRA ·<br>
+  HIT PROTEIN EARLIER THAT DAY (YOGURT/EGGS/WHEY) ·<br>
+  ADD SALAD/VEG · NO GUILT, BACK TO PLAN NEXT MEAL
+</footer>
+
+<script>
+const DATA = [
+  {
+    meal: "Breakfast",
+    protein: "~25G PROTEIN",
+    items: [
+      { id: "oats", name: "Porridge Oats", detail: "40g/day → 280g/wk · 1kg bag lasts ~3wks", store: "Aldi ~75p" },
+      { id: "milk", name: "Semi-Skimmed Milk", detail: "~150ml/day → 2 pints/wk", store: "Any ~£1.25" },
+      { id: "skyr", name: "Fat-Free Greek Yogurt / Skyr", detail: "150g/day → 1kg/wk (2 large tubs)", store: "Aldi/Lidl ~£1.15 ea" }
+    ]
+  },
+  {
+    meal: "Lunch",
+    protein: "~35G PROTEIN",
+    items: [
+      { id: "eggs", name: "Eggs", detail: "3/day → 21/wk (2× 12-packs covers it)", store: "Aldi ~£2.10/dozen" },
+      { id: "cottage", name: "Cottage Cheese", detail: "150g/day → 1kg/wk (3× 300g tubs)", store: "ASDA ~£1.10 ea" },
+      { id: "spinach", name: "Spinach", detail: "Handful/day · frozen blocks cheaper + keep", store: "Aldi frozen ~£1" },
+      { id: "brazil", name: "Brazil Nuts", detail: "4/day → ~30/wk · 200g bag lasts 2wks", store: "ASDA ~£2.50" }
+    ]
+  },
+  {
+    meal: "Dinner",
+    protein: "~45–50G PROTEIN",
+    items: [
+      { id: "chicken", name: "Chicken Breast", detail: "200g raw/day · frozen 1kg bags best value", store: "Aldi/Iceland ~£3.50/kg" },
+      { id: "mince", name: "Beef Mince 5%", detail: "Alternate with chicken · 500g = 2.5 portions", store: "Aldi ~£2.75/500g" },
+      { id: "rice", name: "White Rice (dry)", detail: "75g/day → ~525g/wk · buy 1kg+ bags", store: "ASDA ~45p/kg own brand" },
+      { id: "veg", name: "Mixed Vegetables", detail: "Unlimited · frozen = cheapest, zero waste", store: "Any frozen ~£1" }
+    ]
+  },
+  {
+    meal: "Snacks / Supps",
+    protein: "~25G PROTEIN",
+    items: [
+      { id: "whey", name: "Whey Protein", detail: "30g/day in water or milk · 1kg = 33 servings", store: "MyProtein ~£18/kg online" },
+      { id: "tuna", name: "Tinned Tuna (backup)", detail: "1 tin = 25g protein · swap for whey anytime", store: "ASDA ~60p/tin" },
+      { id: "oilyfish", name: "Tinned Mackerel / Sardines", detail: "2–3 tins/wk · swap in for eggs or tuna at lunch", store: "ASDA/Aldi ~50–70p/tin" },
+      { id: "vitd", name: "Vitamin D3 1,000–2,000 IU", detail: "1/day · UK essential · tub lasts months", store: "Any ~£3" },
+      { id: "creatine", name: "Creatine Monohydrate", detail: "3–5g/day · 250g tub lasts ~2 months", store: "Online ~£8" },
+      { id: "coke", name: "Diet Coke", detail: "Genuinely fine · zero impact on cut", store: "Whatever's on offer" }
+    ]
+  },
+  {
+    meal: "Contingency — Pizza Protocol",
+    protein: "DAMAGE CONTROL",
+    items: [
+      { id: "pizza", name: "Frozen Pizza (Dr. Oetker etc.)", detail: "Keep 1–2 in freezer · ~800–900 kcal · planned not panicked", store: "On offer ~£2.50–3.50" },
+      { id: "pizzaside", name: "Bagged Salad / Frozen Veg (pizza night)", detail: "Bulk the meal out · fills you up, slows you down", store: "Aldi ~60p" }
+    ]
+  }
+];
+
+const STORAGE_KEY = "food-stock-state";
+let state = {};
+
+// Layered storage: Claude artifact storage → localStorage (hosted/standalone) → in-memory
+const memStore = {};
+const store = {
+  async get(key) {
+    if (typeof window !== "undefined" && window.storage) {
+      try {
+        const r = await window.storage.get(key);
+        if (r && r.value !== undefined) return r;
+      } catch (e) { /* fall through */ }
+    }
+    try {
+      const v = localStorage.getItem(key);
+      if (v !== null) return { key, value: v };
+    } catch (e) { /* sandboxed — fall through */ }
+    return (key in memStore) ? { key, value: memStore[key] } : null;
+  },
+  async set(key, value) {
+    memStore[key] = value;
+    let persisted = false;
+    if (typeof window !== "undefined" && window.storage) {
+      try { await window.storage.set(key, value); persisted = true; } catch (e) { /* fall through */ }
+    }
+    try { localStorage.setItem(key, value); persisted = true; } catch (e) { /* sandboxed */ }
+    return persisted;
+  }
+};
+
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+  DATA.forEach(section => {
+    const card = document.createElement("div");
+    card.className = "meal-card";
+
+    const header = document.createElement("div");
+    header.className = "meal-header";
+    header.innerHTML = `<h2>${section.meal}</h2><span class="meal-protein">${section.protein}</span>`;
+    card.appendChild(header);
+
+    const list = document.createElement("ul");
+    list.className = "item-list";
+
+    section.items.forEach(item => {
+      const li = document.createElement("li");
+      li.className = "item" + (state[item.id] ? " checked" : "");
+      li.innerHTML = `
+        <div class="checkbox">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#050a12" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <div class="item-body">
+          <div class="item-name">${item.name}</div>
+          <div class="item-detail">${item.detail} · <span class="store-hint">${item.store}</span></div>
+        </div>`;
+      li.addEventListener("click", () => toggle(item.id));
+      list.appendChild(li);
+    });
+
+    card.appendChild(list);
+    app.appendChild(card);
+  });
+  updateProgress();
+}
+
+function updateProgress() {
+  const total = DATA.reduce((n, s) => n + s.items.length, 0);
+  const done = Object.values(state).filter(Boolean).length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById("progressFill").style.width = pct + "%";
+  document.getElementById("progressText").textContent = `${done} / ${total} IN STOCK`;
+  document.getElementById("progressPct").textContent = pct + "%";
+}
+
+async function save() {
+  const ok = await store.set(STORAGE_KEY, JSON.stringify(state));
+  if (!ok) console.warn("No persistent storage — state held in memory this session only");
+}
+
+async function load() {
+  try {
+    const result = await store.get(STORAGE_KEY);
+    if (result && result.value) state = JSON.parse(result.value);
+  } catch (e) {
+    state = {};
+  }
+  if (!state || typeof state !== "object") state = {};
+  render();
+}
+
+function toggle(id) {
+  state[id] = !state[id];
+  render();
+  save();
+}
+
+document.getElementById("resetBtn").addEventListener("click", async () => {
+  state = {};
+  render();
+  save();
+});
+
+load();
+</script>
+
+</body>
+</html>
