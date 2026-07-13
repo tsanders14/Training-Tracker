@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#050a12">
+<title>Training Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a12;
+    --surface: #0a1220;
+    --border: #16243a;
+    --accent: #00a8e8;
+    --accent-dim: #0077a8;
+    --text: #e8f1f8;
+    --muted: #5a6b80;
+    --done: #2a3d55;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    padding: 1.2rem 0.9rem 3rem;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-bottom: 1rem;
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    letter-spacing: 0.04em;
+    line-height: 0.95;
+    color: var(--accent);
+  }
+
+  .week-counter {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.7;
+    letter-spacing: 0.05em;
+  }
+
+  .week-counter strong {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .deload-banner {
+    background: #1a3a00;
+    border: 1px solid #4a7a00;
+    color: #c8f135;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 0.6rem;
+    margin-bottom: 1rem;
+    display: none;
+  }
+
+  .tabs {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 4px;
+    margin-bottom: 1.2rem;
+  }
+
+  .tab {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.65rem 0;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .tab.active {
+    background: #07203a;
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+  }
+
+  .session-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.05em;
+    color: var(--text);
+  }
+
+  .session-progress {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+  }
+
+  .exercise-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+    overflow: hidden;
+  }
+
+  .ex-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem 0.9rem;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .ex-row:active { background: #0d1828; }
+
+  .checkbox {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    border: 1.5px solid var(--accent-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .exercise-card.checked .checkbox {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .checkbox svg {
+    width: 13px;
+    height: 13px;
+    opacity: 0;
+  }
+
+  .exercise-card.checked .checkbox svg { opacity: 1; }
+
+  .ex-body { flex: 1; }
+
+  .ex-name {
+    font-size: 0.88rem;
+    font-weight: 400;
+  }
+
+  .exercise-card.checked .ex-name {
+    color: var(--done);
+    text-decoration: line-through;
+  }
+
+  .ex-note {
+    font-size: 0.68rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 1px;
+  }
+
+  .ex-sets {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent);
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  .weight-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.9rem;
+    border-top: 1px solid var(--border);
+    background: #070f1a;
+  }
+
+  .weight-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .weight-input {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    width: 80px;
+    text-align: center;
+    outline: none;
+  }
+
+  .weight-input:focus { border-color: var(--accent); }
+
+  .weight-unit {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--muted);
+  }
+
+  .pr-badge {
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: #ffb020;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  .pr-badge .pr-star { margin-right: 2px; }
+
+  .pr-reset {
+    margin-left: 6px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    cursor: pointer;
+    padding: 2px 4px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .pr-reset:active { color: var(--accent); }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.8rem 0.2rem 0.4rem;
+  }
+
+  .rules-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 0.9rem 1rem;
+    margin-bottom: 8px;
+  }
+
+  .rules-block h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    margin-bottom: 0.4rem;
+  }
+
+  .rules-block p {
+    font-size: 0.78rem;
+    line-height: 1.55;
+    color: var(--text);
+  }
+
+  .rules-block p + p { margin-top: 0.4rem; }
+
+  .rules-block .hl { color: var(--accent); font-weight: 500; }
+
+  .reset-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.75rem;
+    cursor: pointer;
+    margin-top: 1rem;
+  }
+
+  .reset-btn:active { border-color: var(--accent); color: var(--accent); }
+
+  .today-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--accent-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .week-adjust {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 1.2rem;
+  }
+
+  .week-btn {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.56rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.55rem 0.3rem;
+    text-align: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .week-btn:active { border-color: var(--accent); color: var(--accent); }
+
+  .loading {
+    text-align: center;
+    padding: 2rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>TRAINING<br>TRACKER</h1>
+  <div>
+    <div class="today-date" id="todayDate">—</div>
+    <div class="week-counter" id="weekCounter">—</div>
+  </div>
+</header>
+
+<div class="week-adjust">
+  <div class="week-btn" id="missedWeekBtn">MISSED A WEEK ↺</div>
+  <div class="week-btn" id="restartBtn">RESTART AT WEEK 1</div>
+</div>
+
+<div class="deload-banner" id="deloadBanner">DELOAD WEEK — HALVE THE SETS, KEEP THE WEIGHTS</div>
+
+<div class="tabs" id="tabs"></div>
+
+<div id="content"><div class="loading">LOADING...</div></div>
+
+<script>
+// Fallback default only — the real, adjustable start date lives in
+// state.cutStartKey once loaded (see load() / missed-week / restart controls below)
+const CUT_START = new Date(2026, 5, 8);
+const DELOAD_WEEK = 6;
+const CUT_LENGTH = 14;
+
+const DAYS = [
+  {
+    key: "mon", tab: "MON", title: "Upper — Strength",
+    exercises: [
+      { id: "bench", name: "Bench Press", sets: "4 × 4–6", weight: true },
+      { id: "row", name: "Barbell Row", sets: "4 × 4–6", weight: true },
+      { id: "ohp", name: "Overhead Press", sets: "3 × 6–8", weight: true },
+      { id: "pullup", name: "Weighted Pull-ups", note: "centrepiece — full range", sets: "3 × 6–8", weight: true },
+      { id: "latr1", name: "Lateral Raises", note: "V-taper priority", sets: "4 × 12–15", weight: true },
+      { id: "facepull", name: "Face Pulls", note: "posture priority", sets: "3 × 15", weight: true },
+      { id: "hlr1", name: "Hanging Leg Raises", sets: "3 × 10–12", weight: false }
+    ]
+  },
+  {
+    key: "tue", tab: "TUE", title: "Lower — Strength",
+    exercises: [
+      { id: "squat", name: "Squat", sets: "4 × 4–6", weight: true },
+      { id: "dl", name: "Deadlift", note: "2 crisp sets — no grinding", sets: "2 × 5", weight: true },
+      { id: "legpress", name: "Leg Press", sets: "3 × 10", weight: true },
+      { id: "calf", name: "Calf Raises", sets: "3 × 15", weight: true },
+      { id: "cc1", name: "Cable Crunches", sets: "3 × 12–15", weight: true }
+    ]
+  },
+  {
+    key: "thu", tab: "THU", title: "Upper — Hypertrophy",
+    exercises: [
+      { id: "incline", name: "Incline DB Press", sets: "3 × 10–12", weight: true },
+      { id: "cablerow", name: "Cable Row", sets: "3 × 12", weight: true },
+      { id: "latr2", name: "Lateral Raises", note: "2nd weekly hit", sets: "4 × 12–15", weight: true },
+      { id: "pulldown", name: "Lat Pulldown", sets: "3 × 12", weight: true },
+      { id: "arms", name: "Tricep Pushdown + Curl", note: "superset", sets: "3 × 12", weight: true },
+      { id: "hlr2", name: "Hanging Leg Raises", sets: "3 × 10–12", weight: false }
+    ]
+  },
+  {
+    key: "fri", tab: "FRI", title: "Lower — Hypertrophy",
+    exercises: [
+      { id: "rdl", name: "Romanian Deadlift", sets: "3 × 10", weight: true },
+      { id: "bss", name: "Bulgarian Split Squat", note: "glutes fit the look", sets: "3 × 10 ea.", weight: true },
+      { id: "legcurl", name: "Leg Curl", sets: "3 × 12", weight: true },
+      { id: "cc2", name: "Cable Crunches", sets: "3 × 12–15", weight: true },
+      { id: "finisher", name: "Athletic Finisher", note: "jump rope / box jumps / sprints", sets: "10 MIN", weight: false }
+    ]
+  },
+  {
+    key: "posture", tab: "POST", title: "Posture — Daily",
+    sections: [
+      { label: "Morning", exercises: [
+        { id: "chintuck", name: "Chin Tucks", note: "deep cervical flexors", sets: "3 × 10", weight: false },
+        { id: "wallangel", name: "Wall Angels", sets: "2 × 10", weight: false },
+        { id: "doorway", name: "Chest Doorway Stretch", sets: "2 × 30s ea.", weight: false }
+      ]},
+      { label: "Evening", exercises: [
+        { id: "thoracic", name: "Thoracic Extension (foam roller)", sets: "60s", weight: false },
+        { id: "deadhang", name: "Dead Hang", note: "bar or door frame", sets: "3 × 20–30s", weight: false },
+        { id: "hipflexor", name: "Hip Flexor Stretch", note: "pelvic tilt", sets: "2 × 45s ea.", weight: false }
+      ]}
+    ]
+  },
+  { key: "rules", tab: "RULES", title: "Rules" }
+];
+
+const RULES = [
+  { h: "Progression", p: ["Hit the <span class='hl'>top of the rep range on all sets</span> → add <span class='hl'>2.5kg upper / 5kg lower</span> next session and rebuild.", "On a cut, maintaining loads late on is winning. Don't chase PRs in a deficit."] },
+  { h: "Deload — Week 6", p: ["<span class='hl'>Halve the sets, keep the weights.</span> One easy week, planned in advance.", "Skipping this is how cuts die at week 8."] },
+  { h: "Exit Criteria", p: ["The cut ends at <span class='hl'>72–73kg</span>, OR when weekly-average weight stalls <span class='hl'>3 weeks despite compliance</span>, OR at <span class='hl'>14 weeks</span> — whichever comes first.", "Then: 2 weeks at maintenance, then Phase 2 lean build (shoulders/arms)."] },
+  { h: "Cardio & Steps", p: ["Cardio <span class='hl'>2×/week, 20–30 min moderate</span>. No more — it eats recovery.", "Daily steps <span class='hl'>8–10k</span> — the cheapest fat-loss tool there is."] },
+  { h: "Weigh-In Protocol", p: ["Morning, after toilet, before food, <span class='hl'>3–4×/week</span>.", "Track the <span class='hl'>weekly average</span> — daily numbers are noise (creatine water weight)."] },
+  { h: "Daily Targets", p: ["Protein <span class='hl'>140–160g</span> · Calories <span class='hl'>1,700–1,850</span> · Creatine 3–5g · Vitamin D3 · Sleep <span class='hl'>7–8hrs</span>."] }
+];
+
+const STORAGE_KEY = "training-tracker-state";
+const POSTURE_IDS = ["chintuck","wallangel","doorway","thoracic","deadhang","hipflexor"];
+let state = { checks: {}, weights: {}, prs: {}, weekKey: "", dayKey: "", cutStartKey: "" };
+let activeTab = null;
+
+// Layered storage: Claude artifact storage → localStorage (standalone use,
+// e.g. hosted + opened in Safari) → in-memory (last resort, session only).
+// localStorage is wrapped in try/catch because it throws inside Claude's sandbox.
+const memStore = {};
+const store = {
+  async get(key) {
+    if (typeof window !== "undefined" && window.storage) {
+      try {
+        const r = await window.storage.get(key);
+        if (r && r.value !== undefined) return r;
+      } catch (e) { /* fall through */ }
+    }
+    try {
+      const v = localStorage.getItem(key);
+      if (v !== null) return { key, value: v };
+    } catch (e) { /* sandboxed — fall through */ }
+    return (key in memStore) ? { key, value: memStore[key] } : null;
+  },
+  async set(key, value) {
+    memStore[key] = value; // always keep session copy
+    let persisted = false;
+    if (typeof window !== "undefined" && window.storage) {
+      try { await window.storage.set(key, value); persisted = true; } catch (e) { /* fall through */ }
+    }
+    try { localStorage.setItem(key, value); persisted = true; } catch (e) { /* sandboxed */ }
+    return persisted;
+  }
+};
+
+function localDateKey(d) {
+  return d.getFullYear() + "-" +
+    String(d.getMonth() + 1).padStart(2, "0") + "-" +
+    String(d.getDate()).padStart(2, "0");
+}
+
+function getWeekKey() {
+  // Build from LOCAL date parts — toISOString() is UTC and shifts the date
+  // around midnight in BST, causing inconsistent week keys / spurious resets
+  const now = new Date();
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const day = now.getDay();
+  monday.setDate(monday.getDate() - (day === 0 ? 6 : day - 1));
+  return localDateKey(monday);
+}
+
+function getDayKey() {
+  return localDateKey(new Date());
+}
+
+function parseDateKey(key) {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function getCutWeek() {
+  const start = parseDateKey(state.cutStartKey);
+  const now = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+  const diff = now.getTime() - start.getTime();
+  return Math.max(1, Math.floor(diff / (7 * 24 * 3600 * 1000)) + 1);
+}
+
+function defaultTab() {
+  const d = new Date().getDay();
+  if (d === 1) return "mon";
+  if (d === 2) return "tue";
+  if (d === 4) return "thu";
+  if (d === 5) return "fri";
+  return "posture";
+}
+
+const WEEKDAY_NAMES = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
+const MONTH_NAMES = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+
+function formatDisplayDate(d) {
+  return `${WEEKDAY_NAMES[d.getDay()]} ${d.getDate()} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function renderHeader() {
+  const today = new Date();
+  document.getElementById("todayDate").textContent = formatDisplayDate(today);
+
+  const wk = getCutWeek();
+  const el = document.getElementById("weekCounter");
+  if (wk <= CUT_LENGTH) {
+    el.innerHTML = `<strong>WEEK ${wk} OF ~${CUT_LENGTH}</strong><br>DELOAD W${DELOAD_WEEK} · TARGET 72–73KG`;
+  } else {
+    el.innerHTML = `<strong>CUT COMPLETE</strong><br>MAINTENANCE → PHASE 2`;
+  }
+  document.getElementById("deloadBanner").style.display = (wk === DELOAD_WEEK) ? "block" : "none";
+}
+
+function renderTabs() {
+  const tabs = document.getElementById("tabs");
+  tabs.innerHTML = "";
+  DAYS.forEach(d => {
+    const t = document.createElement("div");
+    t.className = "tab" + (activeTab === d.key ? " active" : "");
+    t.textContent = d.tab;
+    t.addEventListener("click", () => { activeTab = d.key; renderTabs(); renderContent(); });
+    tabs.appendChild(t);
+  });
+}
+
+function exerciseCard(ex) {
+  const card = document.createElement("div");
+  const checked = !!state.checks[ex.id];
+  card.className = "exercise-card" + (checked ? " checked" : "");
+
+  const row = document.createElement("div");
+  row.className = "ex-row";
+  row.innerHTML = `
+    <div class="checkbox"><svg viewBox="0 0 24 24" fill="none" stroke="#050a12" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+    <div class="ex-body">
+      <div class="ex-name">${ex.name}</div>
+      ${ex.note ? `<div class="ex-note">${ex.note}</div>` : ""}
+    </div>
+    <div class="ex-sets">${ex.sets}</div>`;
+  row.addEventListener("click", () => {
+    state.checks[ex.id] = !state.checks[ex.id];
+    save(); renderContent();
+  });
+  card.appendChild(row);
+
+  if (ex.weight) {
+    const wrow = document.createElement("div");
+    wrow.className = "weight-row";
+    const val = state.weights[ex.id] || "";
+    wrow.innerHTML = `<span class="weight-label">Last weight</span>`;
+    const input = document.createElement("input");
+    input.className = "weight-input";
+    input.type = "text";
+    input.inputMode = "decimal";
+    input.placeholder = "—";
+    input.value = val;
+    input.addEventListener("click", e => e.stopPropagation());
+    input.addEventListener("change", () => {
+      const raw = input.value.trim();
+      state.weights[ex.id] = raw;
+
+      // Pull the first number out of whatever was typed (handles "70", "70.5",
+      // or shorthand like "70x5") and treat it as a PR candidate
+      const match = raw.match(/(\d+(\.\d+)?)/);
+      if (match) {
+        const num = parseFloat(match[1]);
+        if (!isNaN(num) && (state.prs[ex.id] === undefined || num > state.prs[ex.id])) {
+          state.prs[ex.id] = num;
+        }
+      }
+      save();
+      renderContent(); // refresh so the PR badge updates immediately
+    });
+    wrow.appendChild(input);
+    const unit = document.createElement("span");
+    unit.className = "weight-unit";
+    unit.textContent = "kg";
+    wrow.appendChild(unit);
+
+    if (state.prs[ex.id] !== undefined) {
+      const pr = document.createElement("span");
+      pr.className = "pr-badge";
+      pr.innerHTML = `<span class="pr-star">★</span>PR ${state.prs[ex.id]}KG`;
+      wrow.appendChild(pr);
+
+      const resetPr = document.createElement("span");
+      resetPr.className = "pr-reset";
+      resetPr.textContent = "✕";
+      resetPr.addEventListener("click", e => {
+        e.stopPropagation();
+        if (confirm(`Clear the PR of ${state.prs[ex.id]}kg for ${ex.name}? This can't be undone.`)) {
+          delete state.prs[ex.id];
+          save();
+          renderContent();
+        }
+      });
+      wrow.appendChild(resetPr);
+    }
+
+    card.appendChild(wrow);
+  }
+  return card;
+}
+
+function renderContent() {
+  const content = document.getElementById("content");
+  content.innerHTML = "";
+  const day = DAYS.find(d => d.key === activeTab);
+
+  if (day.key === "rules") {
+    RULES.forEach(r => {
+      const block = document.createElement("div");
+      block.className = "rules-block";
+      block.innerHTML = `<h3>${r.h}</h3>` + r.p.map(p => `<p>${p}</p>`).join("");
+      content.appendChild(block);
+    });
+    return;
+  }
+
+  let exList = [];
+  const headerEl = document.createElement("div");
+  headerEl.className = "session-header";
+
+  if (day.sections) {
+    day.sections.forEach(s => { exList = exList.concat(s.exercises); });
+  } else {
+    exList = day.exercises;
+  }
+  const done = exList.filter(e => state.checks[e.id]).length;
+
+  headerEl.innerHTML = `<div class="session-title">${day.title}</div><div class="session-progress">${done}/${exList.length} DONE</div>`;
+  content.appendChild(headerEl);
+
+  if (day.sections) {
+    day.sections.forEach(s => {
+      const label = document.createElement("div");
+      label.className = "section-label";
+      label.textContent = s.label;
+      content.appendChild(label);
+      s.exercises.forEach(ex => content.appendChild(exerciseCard(ex)));
+    });
+  } else {
+    day.exercises.forEach(ex => content.appendChild(exerciseCard(ex)));
+  }
+
+  const reset = document.createElement("button");
+  reset.className = "reset-btn";
+  reset.textContent = "RESET THIS SESSION";
+  reset.addEventListener("click", () => {
+    exList.forEach(e => { delete state.checks[e.id]; });
+    save(); renderContent();
+  });
+  content.appendChild(reset);
+}
+
+async function save() {
+  const ok = await store.set(STORAGE_KEY, JSON.stringify(state));
+  if (!ok) console.warn("No persistent storage available — state held in memory for this session only");
+}
+
+async function load() {
+  try {
+    const result = await store.get(STORAGE_KEY);
+    if (result && result.value) state = JSON.parse(result.value);
+  } catch (e) { /* fresh start */ }
+
+  // Guard against malformed or older-version saved state
+  if (!state || typeof state !== "object") state = {};
+  state.checks = state.checks && typeof state.checks === "object" ? state.checks : {};
+  state.weights = state.weights && typeof state.weights === "object" ? state.weights : {};
+  state.prs = state.prs && typeof state.prs === "object" ? state.prs : {};
+
+  let dirty = false;
+
+  // First run (or state predates this feature) — seed from the fallback default
+  if (!state.cutStartKey) {
+    state.cutStartKey = localDateKey(CUT_START);
+    dirty = true;
+  }
+
+  // Weekly auto-reset of GYM checkmarks (weights persist)
+  const wk = getWeekKey();
+  if (state.weekKey !== wk) {
+    Object.keys(state.checks).forEach(id => {
+      if (!POSTURE_IDS.includes(id)) delete state.checks[id];
+    });
+    state.weekKey = wk;
+    dirty = true;
+  }
+
+  // Daily auto-reset of POSTURE checkmarks — it's a daily routine,
+  // a weekly reset would leave Monday's ticks showing all week
+  const dk = getDayKey();
+  if (state.dayKey !== dk) {
+    POSTURE_IDS.forEach(id => { delete state.checks[id]; });
+    state.dayKey = dk;
+    dirty = true;
+  }
+
+  if (dirty) save();
+
+  activeTab = defaultTab();
+  renderHeader();
+  renderTabs();
+  renderContent();
+}
+
+document.getElementById("missedWeekBtn").addEventListener("click", () => {
+  // Shifts the start date forward 7 days — this week doesn't count,
+  // so next week the counter still reads correctly against training actually done
+  const start = parseDateKey(state.cutStartKey);
+  start.setDate(start.getDate() + 7);
+  state.cutStartKey = localDateKey(start);
+  save();
+  renderHeader();
+});
+
+document.getElementById("restartBtn").addEventListener("click", () => {
+  if (!confirm("Restart the timeline at Week 1 from this week? This won't clear your logged weights or exercise ticks.")) return;
+  state.cutStartKey = getWeekKey(); // Monday of the current week
+  save();
+  renderHeader();
+});
+
+load();
+</script>
+
+</body>
+</html>
